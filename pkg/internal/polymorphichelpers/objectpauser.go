@@ -20,6 +20,7 @@ package polymorphichelpers
 import (
 	"errors"
 	"fmt"
+	kruiserolloutsv1apha1 "github.com/openkruise/rollouts/api/v1alpha1"
 
 	kruiseappsv1alpha1 "github.com/openkruise/kruise-api/apps/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -60,12 +61,20 @@ func defaultObjectPauser(obj runtime.Object) ([]byte, error) {
 		}
 		obj.Spec.Paused = true
 		return runtime.Encode(scheme.Codecs.LegacyCodec(appsv1beta1.SchemeGroupVersion), obj)
+
 	case *kruiseappsv1alpha1.CloneSet:
 		if obj.Spec.UpdateStrategy.Paused {
 			return nil, errors.New("is already paused")
 		}
 		obj.Spec.UpdateStrategy.Paused = true
 		return runtime.Encode(scheme.Codecs.LegacyCodec(kruiseappsv1alpha1.SchemeGroupVersion), obj)
+
+	case *kruiserolloutsv1apha1.Rollout:
+		if obj.Spec.Strategy.Paused {
+			return nil, errors.New("is already paused")
+		}
+		obj.Spec.Strategy.Paused = true
+		return runtime.Encode(scheme.Codecs.LegacyCodec(kruiserolloutsv1apha1.SchemeGroupVersion), obj)
 
 	default:
 		return nil, fmt.Errorf("pausing is not supported")
